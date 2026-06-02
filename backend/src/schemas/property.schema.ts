@@ -11,7 +11,16 @@ export const createPropertySchema = z.object({
   bathroom: z.number().int().min(0),
   garage: z.number().int().min(0),
   details: z.record(z.string(), z.unknown()).optional(),
-  photos: z.array(z.string().url()).optional(),
+  photos: z
+    .array(
+      z
+        .string()
+        .refine(
+          (s) => /^https?:\/\//.test(s) || s.startsWith("/uploads/"),
+          "Chemin de photo invalide"
+        )
+    )
+    .optional(),
 });
 
 export const updatePropertySchema = createPropertySchema.partial();

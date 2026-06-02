@@ -84,6 +84,16 @@ export async function deleteProperty(id: string): Promise<void> {
   await api.delete(`/properties/${id}`);
 }
 
+// Téléverse des fichiers image et renvoie leurs chemins servis (/uploads/...).
+export async function uploadPhotos(files: File[]): Promise<string[]> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("photos", file));
+  const { data } = await api.post<{ paths: string[] }>("/uploads", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data.paths;
+}
+
 // ─── Property types ──────────────────────────────────────────────────────────
 
 export async function fetchPropertyTypes(): Promise<PropertyType[]> {

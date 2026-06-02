@@ -17,6 +17,7 @@ import {
   deleteProperty,
   createProperty,
   updateProperty,
+  uploadPhotos,
 } from "../lib/api";
 import { usePropertyTypes } from "../hooks/usePropertyTypes";
 import type { Property, CreatePropertyPayload } from "../types";
@@ -33,7 +34,7 @@ interface PropertyFormData {
   bedroom: string;
   bathroom: string;
   garage: string;
-  photos: string;
+  photos: string[];
   features: string;
   year: string;
 }
@@ -48,7 +49,7 @@ const emptyForm: PropertyFormData = {
   bedroom: "",
   bathroom: "",
   garage: "",
-  photos: "",
+  photos: [],
   features: "",
   year: "",
 };
@@ -64,7 +65,7 @@ function fromProperty(p: Property): PropertyFormData {
     bedroom: String(p.bedrooms),
     bathroom: String(p.bathrooms),
     garage: String(p.parking),
-    photos: p.gallery.join("\n"),
+    photos: p.gallery,
     features: p.features.join("\n"),
     year: p.year ? String(p.year) : "",
   };
@@ -81,10 +82,7 @@ function toPayload(form: PropertyFormData): CreatePropertyPayload {
     bedroom: Number(form.bedroom),
     bathroom: Number(form.bathroom),
     garage: Number(form.garage),
-    photos: form.photos
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean),
+    photos: form.photos,
     details: {
       features: form.features
         .split("\n")
@@ -105,6 +103,7 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
     editTarget ? fromProperty(editTarget) : emptyForm
   );
   const [formError, setFormError] = useState("");
+  const [uploading, setUploading] = useState(false);
   const qc = useQueryClient();
   const { data: types = [] } = usePropertyTypes();
 
@@ -132,7 +131,32 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    e.target.value = ""; // Permet de re-sélectionner le même fichier ensuite.
+    if (files.length === 0) return;
+
+    setFormError("");
+    setUploading(true);
+    try {
+      const paths = await uploadPhotos(files);
+      setForm((prev) => ({ ...prev, photos: [...prev.photos, ...paths] }));
+    } catch {
+      setFormError("Erreur lors du téléversement des photos.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePhoto = (path: string) => {
+    setForm((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((p) => p !== path),
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -244,8 +268,52 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
             </div>
 
             <div className="sm:col-span-2">
-              <label htmlFor="f-photos" className={labelClass}>Photos (une URL par ligne)</label>
-              <textarea id="f-photos" name="photos" rows={4} value={form.photos} onChange={handleChange} className={`${inputClass} resize-none`} placeholder="https://images.unsplash.com/..." />
+              <label className={labelClass}>Photos</label>
+
+              {form.photos.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-3">
+                  {form.photos.map((path) => (
+                    <div
+                      key={path}
+                      className="relative aspect-[4/3] border overflow-hidden bg-stone/10"
+                      style={{ borderColor: "var(--gold-border)" }}
+                    >
+                      <img src={path} alt="" className="img-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(path)}
+                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-ink/80 text-surface hover:bg-red-500 transition-colors"
+                        aria-label="Supprimer la photo"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <label
+                htmlFor="f-photos"
+                className={`inline-flex items-center gap-2 text-label border px-4 py-2.5 transition-colors ${
+                  uploading
+                    ? "text-stone opacity-60 cursor-wait"
+                    : "text-stone cursor-pointer hover:border-gold hover:text-gold"
+                }`}
+                style={{ borderColor: "var(--gold-border)" }}
+              >
+                {uploading ? "Téléversement…" : "+ Ajouter des photos"}
+              </label>
+              <input
+                id="f-photos"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                disabled={uploading}
+                className="hidden"
+              />
             </div>
 
             <div className="sm:col-span-2">
@@ -259,7 +327,7 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
           )}
 
           <div className="mt-8 flex gap-4">
-            <Button type="submit" variant="primary" disabled={isPending}>
+            <Button type="submit" variant="primary" disabled={isPending || uploading}>
               {isPending ? "Enregistrement…" : editTarget ? "Enregistrer les modifications" : "Créer la propriété"}
             </Button>
             <Button type="button" variant="ghost" onClick={onClose}>

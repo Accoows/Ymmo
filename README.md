@@ -167,6 +167,8 @@ Ymmo/
 | `POST` | `/api/contact` | — | Envoyer un message |
 | `GET` | `/api/contact` | Admin | Lister les messages |
 | `DELETE` | `/api/contact/:id` | Admin | Supprimer un message |
+| `POST` | `/api/uploads` | Admin | Téléverser des photos (multipart) |
+| `GET` | `/uploads/:file` | — | Récupérer un fichier téléversé |
 
 ### Paramètres de filtrage — `GET /api/properties`
 
@@ -205,8 +207,11 @@ Ymmo/
 - **Contact** : formulaire général
 
 ### Espace administration (`/admin`)
-- **Onglet Propriétés** : tableau de gestion (création, modification, suppression) avec pagination
+- **Onglet Propriétés** : tableau de gestion (création, modification, suppression) avec pagination. Les **photos sont téléversées** (vrais fichiers stockés et servis par le serveur), avec miniatures et suppression.
 - **Onglet Messages** : liste des messages clients avec toutes les informations (nom, email, téléphone, sujet, message complet, bien associé cliquable), réponse par email directe, suppression avec confirmation
+
+### Photos des biens
+Les images sont **téléversées via le formulaire admin** (`POST /api/uploads`, réservé admin), stockées dans `backend/uploads/` (UUID, images uniquement, max 5 Mo) et servies en statique sur `/uploads/<fichier>`. Le dossier `uploads/` est ignoré par git. Les URLs externes restent acceptées (données de démonstration).
 
 ---
 

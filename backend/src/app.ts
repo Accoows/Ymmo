@@ -9,6 +9,8 @@ import authRoutes from "./routes/auth.routes.js";
 import propertyRoutes from "./routes/property.routes.js";
 import propertyTypeRoutes from "./routes/propertyType.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
+import { uploadsDir } from "./middleware/upload.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -23,6 +25,16 @@ app.use(cors({
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+
+// Fichiers téléversés, servis en statique (hors limiteur de requêtes API).
+app.use(
+  "/uploads",
+  express.static(uploadsDir, {
+    setHeaders: (res) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -44,6 +56,7 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/properties", apiLimiter, propertyRoutes);
 app.use("/api/property-types", apiLimiter, propertyTypeRoutes);
 app.use("/api/contact", apiLimiter, contactRoutes);
+app.use("/api/uploads", apiLimiter, uploadRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
