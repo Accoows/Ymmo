@@ -15,7 +15,19 @@ export interface Property {
   description: string;
   features: string[];
   year: number | null;
+  latitude: number | null;
+  longitude: number | null;
   postedAt: string;
+}
+
+export interface PropertyLocation {
+  id: string;
+  title: string;
+  location: string;
+  type: string;
+  priceRaw: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface PropertyType {
@@ -110,5 +122,7 @@ export interface CreatePropertyPayload {
   details?: {
     features?: string[];
     year?: number;
+    latitude?: number;
+    longitude?: number;
   };
 }

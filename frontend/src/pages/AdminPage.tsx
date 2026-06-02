@@ -11,6 +11,8 @@ import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import { PageSpinner } from "../components/ui/Spinner";
 import MessagesPanel from "../components/admin/MessagesPanel";
+import PropertyMap, { type MapPoint } from "../components/ui/PropertyMap";
+import LocationPicker from "../components/ui/LocationPicker";
 import { useAuth } from "../context/AuthContext";
 import {
   fetchProperties,
@@ -20,6 +22,7 @@ import {
   uploadPhotos,
 } from "../lib/api";
 import { usePropertyTypes } from "../hooks/usePropertyTypes";
+import { usePropertyLocations } from "../hooks/usePropertyLocations";
 import type { Property, CreatePropertyPayload } from "../types";
 
 // ─── Property form modal ─────────────────────────────────────────────────────
@@ -37,6 +40,8 @@ interface PropertyFormData {
   photos: string[];
   features: string;
   year: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 const emptyForm: PropertyFormData = {
@@ -52,6 +57,8 @@ const emptyForm: PropertyFormData = {
   photos: [],
   features: "",
   year: "",
+  latitude: null,
+  longitude: null,
 };
 
 function fromProperty(p: Property): PropertyFormData {
@@ -68,6 +75,8 @@ function fromProperty(p: Property): PropertyFormData {
     photos: p.gallery,
     features: p.features.join("\n"),
     year: p.year ? String(p.year) : "",
+    latitude: p.latitude,
+    longitude: p.longitude,
   };
 }
 
@@ -89,6 +98,9 @@ function toPayload(form: PropertyFormData): CreatePropertyPayload {
         .map((s) => s.trim())
         .filter(Boolean),
       ...(form.year ? { year: Number(form.year) } : {}),
+      ...(form.latitude != null && form.longitude != null
+        ? { latitude: form.latitude, longitude: form.longitude }
+        : {}),
     },
   };
 }
@@ -157,6 +169,14 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
       ...prev,
       photos: prev.photos.filter((p) => p !== path),
     }));
+  };
+
+  const setCoords = (lat: number, lng: number) => {
+    setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+  };
+
+  const clearCoords = () => {
+    setForm((prev) => ({ ...prev, latitude: null, longitude: null }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -235,6 +255,40 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
             <div>
               <label htmlFor="f-loc" className={labelClass}>Localisation *</label>
               <input id="f-loc" name="localisation" required value={form.localisation} onChange={handleChange} className={inputClass} placeholder="Paris 16ème" />
+            </div>
+
+            <div className="sm:col-span-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={labelClass + " mb-0"}>
+                  Emplacement sur la carte
+                </label>
+                {form.latitude != null && form.longitude != null ? (
+                  <span className="text-[11px] text-stone">
+                    {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}
+                    <button
+                      type="button"
+                      onClick={clearCoords}
+                      className="ml-3 text-gold hover:underline"
+                    >
+                      Réinitialiser
+                    </button>
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-stone">
+                    Cliquez sur la carte pour placer le bien
+                  </span>
+                )}
+              </div>
+              <LocationPicker
+                latitude={form.latitude}
+                longitude={form.longitude}
+                onChange={setCoords}
+                height={300}
+              />
+              <p className="text-[11px] text-stone mt-1.5">
+                Sans point défini, la position est déduite automatiquement de la
+                localisation saisie.
+              </p>
             </div>
 
             <div>
@@ -360,6 +414,18 @@ export default function AdminPage() {
     enabled: tab === "properties",
   });
 
+  const { data: locations = [] } = usePropertyLocations();
+
+  const mapPoints: MapPoint[] = locations.map((l) => ({
+    id: l.id,
+    title: l.title,
+    location: l.location,
+    latitude: l.latitude,
+    longitude: l.longitude,
+    priceLabel: l.priceRaw.toLocaleString("fr-FR") + " €",
+    href: `/properties/${l.id}`,
+  }));
+
   const deleteMutation = useMutation({
     mutationFn: deleteProperty,
     onSuccess: () => {
@@ -439,6 +505,14 @@ export default function AdminPage() {
 
       {/* Content */}
       <div className="max-w-editorial mx-auto px-6 lg:px-16 py-10">
+        {tab === "properties" && mapPoints.length > 0 && (
+          <div className="mb-10">
+            <p className="text-label text-stone mb-4">
+              Carte des biens — {mapPoints.length} localisé{mapPoints.length > 1 ? "s" : ""}
+            </p>
+            <PropertyMap points={mapPoints} height={440} />
+          </div>
+        )}
         {tab === "messages" ? (
           <MessagesPanel />
         ) : isLoading ? (

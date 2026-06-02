@@ -2,11 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma.js";
 import { createPropertySchema, updatePropertySchema, propertyQuerySchema } from "../schemas/property.schema.js";
 import { AppError } from "../middleware/errorHandler.js";
+import { geocode } from "../lib/geo.js";
 
 interface PropertyDetails {
   features?: string[];
   year?: number;
+  latitude?: number;
+  longitude?: number;
   [key: string]: unknown;
+}
+
+// Coordonnées choisies à la main (stockées dans details), sinon null.
+function coordsFromDetails(details: PropertyDetails): { lat: number; lng: number } | null {
+  if (typeof details.latitude === "number" && typeof details.longitude === "number") {
+    return { lat: details.latitude, lng: details.longitude };
+  }
+  return null;
 }
 
 function formatProperty(p: {
@@ -25,6 +36,7 @@ function formatProperty(p: {
   type: { id: number; name: string };
 }) {
   const details = (p.details ?? {}) as PropertyDetails;
+  const coords = coordsFromDetails(details) ?? geocode(p.localisation);
   return {
     id: p.id,
     title: p.name,
@@ -42,6 +54,8 @@ function formatProperty(p: {
     description: p.description,
     features: details.features ?? [],
     year: details.year ?? null,
+    latitude: coords?.lat ?? null,
+    longitude: coords?.lng ?? null,
     postedAt: p.posted_at,
   };
 }
@@ -127,6 +141,44 @@ export async function getProperties(req: Request, res: Response, next: NextFunct
         totalPages: Math.ceil(total / limit),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Données minimales géolocalisées de tous les biens (pour la carte admin).
+export async function getPropertyLocations(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const properties = await prisma.property.findMany({
+      select: {
+        id: true,
+        name: true,
+        localisation: true,
+        price: true,
+        details: true,
+        type: { select: { name: true } },
+      },
+      orderBy: { posted_at: "desc" },
+    });
+
+    const locations = properties
+      .map((p) => {
+        const details = (p.details ?? {}) as PropertyDetails;
+        const coords = coordsFromDetails(details) ?? geocode(p.localisation);
+        if (!coords) return null;
+        return {
+          id: p.id,
+          title: p.name,
+          location: p.localisation,
+          type: p.type.name,
+          priceRaw: Number(p.price),
+          latitude: coords.lat,
+          longitude: coords.lng,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+
+    res.json({ locations });
   } catch (err) {
     next(err);
   }

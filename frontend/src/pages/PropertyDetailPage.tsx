@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Layout from "../components/layout/Layout";
 import ImageGallery from "../components/ui/ImageGallery";
 import ContactForm from "../components/ui/ContactForm";
+import PropertyMap from "../components/ui/PropertyMap";
 import Badge from "../components/ui/Badge";
 import { ButtonLink } from "../components/ui/Button";
 import { PageSpinner } from "../components/ui/Spinner";
@@ -174,6 +175,39 @@ export default function PropertyDetailPage() {
                 </ul>
               </div>
             )}
+
+            {/* Localisation */}
+            <div className="mt-12">
+              <p className="text-label text-stone mb-6">Localisation</p>
+              <div className="divider-gold mb-8" />
+              <p className="text-sm text-ink/80 mb-4 flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold">
+                  <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {property.location}
+              </p>
+              {property.latitude != null && property.longitude != null ? (
+                <PropertyMap
+                  points={[
+                    {
+                      id: property.id,
+                      title: property.title,
+                      location: property.location,
+                      latitude: property.latitude,
+                      longitude: property.longitude,
+                      priceLabel: property.price,
+                    },
+                  ]}
+                  height={360}
+                  singleZoom={12}
+                />
+              ) : (
+                <p className="text-stone text-sm">
+                  Localisation cartographique indisponible pour ce bien.
+                </p>
+              )}
+            </div>
           </motion.div>
 
           {/* Right column — sticky contact */}

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getProperties,
+  getPropertyLocations,
   getFeaturedProperty,
   getPropertyById,
   createProperty,
@@ -12,6 +13,7 @@ import { authenticate, authorize } from "../middleware/auth.js";
 const router = Router();
 
 router.get("/", getProperties);
+router.get("/locations", getPropertyLocations);
 router.get("/featured", getFeaturedProperty);
 router.get("/:id", getPropertyById);
 

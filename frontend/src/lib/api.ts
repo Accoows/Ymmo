@@ -2,6 +2,7 @@ import axios from "axios";
 import type {
   PropertiesResponse,
   Property,
+  PropertyLocation,
   PropertyType,
   AuthResponse,
   User,
@@ -57,6 +58,13 @@ export async function fetchFeaturedProperty(): Promise<Property | null> {
 export async function fetchPropertyById(id: string): Promise<Property> {
   const { data } = await api.get<{ property: Property }>(`/properties/${id}`);
   return data.property;
+}
+
+export async function fetchPropertyLocations(): Promise<PropertyLocation[]> {
+  const { data } = await api.get<{ locations: PropertyLocation[] }>(
+    "/properties/locations"
+  );
+  return data.locations;
 }
 
 export async function createProperty(
