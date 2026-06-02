@@ -10,7 +10,7 @@ export const createPropertySchema = z.object({
   bedroom: z.number().int().min(0),
   bathroom: z.number().int().min(0),
   garage: z.number().int().min(0),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   photos: z.array(z.string().url()).optional(),
 });
 

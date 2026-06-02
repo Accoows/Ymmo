@@ -1,6 +1,14 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} doit être défini dans les variables d'environnement`);
+  }
+  return value;
+}
+
+const JWT_SECRET = requireEnv("JWT_SECRET");
 const JWT_EXPIRES_IN = "7d";
 
 export interface JwtPayload {

@@ -23,7 +23,7 @@ export function errorHandler(
   }
 
   if (err instanceof ZodError) {
-    const messages = err.errors.map((e) => e.message);
+    const messages = err.issues.map((e) => e.message);
     res.status(400).json({ error: "Validation échouée", details: messages });
     return;
   }

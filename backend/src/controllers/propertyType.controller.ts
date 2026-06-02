@@ -8,7 +8,7 @@ export async function getPropertyTypes(_req: Request, res: Response, next: NextF
       include: { _count: { select: { properties: true } } },
     });
 
-    res.json({ types });
+    res.json({ propertyTypes: types });
   } catch (err) {
     next(err);
   }

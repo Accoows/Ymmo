@@ -7,6 +7,17 @@ import { AppError } from "../middleware/errorHandler.js";
 
 const SALT_ROUNDS = 12;
 
+// Champs utilisateur exposés au client (jamais le mot de passe).
+const publicUserSelect = {
+  id: true,
+  email: true,
+  username: true,
+  firstName: true,
+  lastName: true,
+  role: true,
+  createdAt: true,
+} as const;
+
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
     const data = registerSchema.parse(req.body);
@@ -28,15 +39,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
         ...data,
         password: hashedPassword,
       },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true,
-      },
+      select: publicUserSelect,
     });
 
     const token = signToken({ userId: user.id, role: user.role });
@@ -90,15 +93,7 @@ export async function me(req: Request, res: Response, next: NextFunction) {
 
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true,
-      },
+      select: publicUserSelect,
     });
 
     if (!user) {

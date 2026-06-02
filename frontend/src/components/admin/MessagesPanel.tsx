@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Button from "../ui/Button";
@@ -54,7 +55,20 @@ function MessageCard({
           </h3>
           <p className="text-label text-stone mt-1.5">{formatDate(m.createdAt)}</p>
         </div>
-        {m.propertyName && <Badge variant="gold">Bien : {m.propertyName}</Badge>}
+        {m.propertyId &&
+          (m.propertyName ? (
+            <Link
+              to={`/properties/${m.propertyId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 transition-opacity hover:opacity-80"
+              title="Voir la fiche du bien (nouvel onglet)"
+            >
+              <Badge variant="gold">Bien : {m.propertyName} ↗</Badge>
+            </Link>
+          ) : (
+            <Badge variant="stone">Bien supprimé</Badge>
+          ))}
       </div>
 
       {/* Contact info */}

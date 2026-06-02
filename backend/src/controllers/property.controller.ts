@@ -46,6 +46,15 @@ function formatProperty(p: {
   };
 }
 
+// Construit un filtre numérique Prisma { gte?, lte? } à partir de bornes optionnelles.
+function numericRange(min?: number, max?: number) {
+  if (min === undefined && max === undefined) return undefined;
+  const range: { gte?: number; lte?: number } = {};
+  if (min !== undefined) range.gte = min;
+  if (max !== undefined) range.lte = max;
+  return range;
+}
+
 export async function getProperties(req: Request, res: Response, next: NextFunction) {
   try {
     const query = propertyQuerySchema.parse(req.query);
@@ -79,17 +88,11 @@ export async function getProperties(req: Request, res: Response, next: NextFunct
       where.type = { name: { equals: type, mode: "insensitive" } };
     }
 
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      where.price = {};
-      if (minPrice !== undefined) (where.price as Record<string, unknown>).gte = minPrice;
-      if (maxPrice !== undefined) (where.price as Record<string, unknown>).lte = maxPrice;
-    }
+    const priceRange = numericRange(minPrice, maxPrice);
+    if (priceRange) where.price = priceRange;
 
-    if (minSurface !== undefined || maxSurface !== undefined) {
-      where.surface = {};
-      if (minSurface !== undefined) (where.surface as Record<string, unknown>).gte = minSurface;
-      if (maxSurface !== undefined) (where.surface as Record<string, unknown>).lte = maxSurface;
-    }
+    const surfaceRange = numericRange(minSurface, maxSurface);
+    if (surfaceRange) where.surface = surfaceRange;
 
     if (minBedrooms !== undefined) where.bedroom = { gte: minBedrooms };
     if (minBathrooms !== undefined) where.bathroom = { gte: minBathrooms };
