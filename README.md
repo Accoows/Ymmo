@@ -62,7 +62,7 @@ npm install
 
 ```powershell
 cd backend
-npx prisma migrate deploy
+npx prisma migrate dev
 npx prisma generate
 ```
 
