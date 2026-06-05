@@ -6,6 +6,7 @@ import { ButtonLink } from "../components/ui/Button";
 import { PageSpinner } from "../components/ui/Spinner";
 import { useFeaturedProperty } from "../hooks/useFeaturedProperty";
 import { useProperties } from "../hooks/useProperties";
+import storefrontImg from "../assets/storefront.jpg";
 
 function HeroSection() {
   const { data: featured, isLoading } = useFeaturedProperty();
@@ -172,8 +173,12 @@ function ValueSection() {
   ];
 
   return (
-    <section className="bg-ink">
-      <div className="max-w-editorial mx-auto px-6 lg:px-16 py-20 lg:py-32">
+    <section 
+      className="relative bg-cover bg-center"
+      style={{ backgroundImage: `url(${storefrontImg})` }}
+    >
+      <div className="absolute inset-0 bg-ink opacity-80 z-[1]" />
+      <div className="relative z-[2] max-w-editorial mx-auto px-6 lg:px-16 py-20 lg:py-32">
         <div className="mb-16">
           <p className="text-label text-gold mb-4">Notre approche</p>
           <h2
@@ -196,8 +201,8 @@ function ValueSection() {
               style={{ borderColor: "var(--gold-border)" }}
             >
               <p
-                className="font-display font-light text-gold/30 mb-6"
-                style={{ fontSize: "4rem", lineHeight: 1 }}
+                className="font-display font-light text-gold mb-6"
+                style={{ fontSize: "4rem", lineHeight: 1, textShadow: "0 0 16px rgba(255,215,0,0.35)" }}
               >
                 {item.number}
               </p>

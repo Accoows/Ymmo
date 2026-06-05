@@ -86,42 +86,14 @@ export default function PropertyDetailPage() {
     <Layout>
       {/* Breadcrumb */}
       <div className="pt-24 bg-ink">
-        <div className="max-w-editorial mx-auto px-6 lg:px-16 pt-8 pb-0">
-          <nav className="flex items-center gap-2 text-xs text-stone mb-8">
+        <div className="max-w-editorial mx-auto px-6 lg:px-16 pt-8 pb-8">
+          <nav className="flex items-center gap-2 text-xs text-stone">
             <Link to="/" className="hover:text-gold transition-colors">Accueil</Link>
             <span className="text-gold/30">/</span>
             <Link to="/properties" className="hover:text-gold transition-colors">Propriétés</Link>
             <span className="text-gold/30">/</span>
             <span className="text-surface/60">{property.title}</span>
           </nav>
-
-          <div className="flex flex-wrap items-start justify-between gap-4 pb-10">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <Badge variant="gold">{property.type}</Badge>
-                {property.year && (
-                  <span className="text-label text-stone">Réf. {property.year}</span>
-                )}
-              </div>
-              <h1
-                className="font-display font-light italic text-surface"
-                style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.0 }}
-              >
-                {property.title}
-              </h1>
-              <p className="text-stone text-sm mt-3 flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                {property.location}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-label text-stone mb-2">Prix</p>
-              <p className="text-price text-3xl lg:text-4xl">{property.price}</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -136,6 +108,35 @@ export default function PropertyDetailPage() {
           >
             {/* Gallery */}
             <ImageGallery images={property.gallery} title={property.title} />
+
+            {/* Property Header Info */}
+            <div className="flex flex-wrap items-start justify-between gap-4 mt-8">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <Badge variant="gold">{property.type}</Badge>
+                  {property.year && (
+                    <span className="text-label text-stone">Réf. {property.year}</span>
+                  )}
+                </div>
+                <h1
+                  className="font-display font-light italic text-ink"
+                  style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.0 }}
+                >
+                  {property.title}
+                </h1>
+                <p className="text-stone text-sm mt-3 flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {property.location}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-label text-stone mb-2">Prix</p>
+                <p className="text-price text-3xl lg:text-4xl">{property.price}</p>
+              </div>
+            </div>
 
             {/* Stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">

@@ -49,7 +49,7 @@ export default function Footer() {
               <p>+33 (0)1 40 00 00 00</p>
               <p className="leading-relaxed">
                 25 Avenue Montaigne<br />
-                75008 Paris
+                13001 Aix-en-Provence
               </p>
             </div>
           </div>

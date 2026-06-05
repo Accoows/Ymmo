@@ -39,9 +39,7 @@ export default function PropertiesPage() {
             className="font-display font-light italic text-surface"
             style={{ fontSize: "clamp(2.5rem, 5vw, 4.5rem)", lineHeight: 0.96 }}
           >
-            Propriétés
-            <br />
-            d'exception
+            Propriétés d'exception
           </h1>
           {pagination && (
             <p className="text-stone text-sm mt-6">
