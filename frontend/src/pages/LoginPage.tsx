@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-ink/80 to-ink/30" />
         <div className="absolute inset-0 flex flex-col justify-end p-16">
           <Link to="/" className="font-display text-3xl font-light italic text-gold mb-4">
-            Prestige·Immobilier
+            Ymmo
           </Link>
           <p className="text-stone text-sm max-w-xs leading-relaxed">
             Espace réservé aux conseillers et administrateurs de la plateforme.
@@ -61,7 +61,7 @@ export default function LoginPage() {
         >
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden font-display text-2xl font-light italic text-gold block mb-10">
-            Prestige·Immobilier
+            Ymmo
           </Link>
 
           <p className="text-label text-gold mb-4">Espace agent</p>
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@prestige-immobilier.fr"
+                placeholder="admin@ymmo.fr"
                 required
                 autoComplete="email"
                 className="input-field input-field-dark"

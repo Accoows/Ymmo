@@ -20,15 +20,15 @@ async function main() {
   const adminPassword = await bcrypt.hash("Admin123!", 12);
   await prisma.user.create({
     data: {
-      email: "admin@prestige-immobilier.fr",
+      email: "admin@ymmo.fr",
       password: adminPassword,
       username: "admin",
       firstName: "Admin",
-      lastName: "Prestige",
+      lastName: "Ymmo",
       role: "Admin",
     },
   });
-  console.log("  Admin user created (admin@prestige-immobilier.fr / Admin123!)");
+  console.log("  Admin user created (admin@ymmo.fr / Admin123!)");
 
   const villa = await prisma.propertyType.create({ data: { name: "villa" } });
   const appartement = await prisma.propertyType.create({ data: { name: "appartement" } });

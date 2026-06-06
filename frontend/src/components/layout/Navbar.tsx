@@ -41,7 +41,7 @@ export default function Navbar() {
           className="font-display text-xl lg:text-2xl font-light italic text-gold tracking-title"
           style={{ letterSpacing: "0.04em" }}
         >
-          Prestige<span className="font-normal not-italic text-surface/80 mx-1">·</span>Immobilier
+          Ymmo<span className="font-normal not-italic text-surface/80 mx-1">·</span>
         </Link>
 
         {/* Desktop nav */}

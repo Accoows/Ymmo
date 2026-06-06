@@ -13,7 +13,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <p className="font-display text-2xl font-light italic text-gold mb-4">
-              Prestige·Immobilier
+              Ymmo
             </p>
             <p className="text-stone text-sm leading-relaxed max-w-xs">
               Propriétés d'exception sur les plus beaux marchés français. Discrétion, 
@@ -45,7 +45,7 @@ export default function Footer() {
           <div>
             <p className="text-label text-stone mb-6">Contact</p>
             <div className="flex flex-col gap-3 text-sm text-surface/60">
-              <p>contact@prestige-immobilier.fr</p>
+              <p>contact@ymmo.fr</p>
               <p>+33 (0)1 40 00 00 00</p>
               <p className="leading-relaxed">
                 25 Avenue Montaigne<br />
@@ -61,7 +61,7 @@ export default function Footer() {
           style={{ borderColor: "var(--gold-border)" }}
         >
           <p className="text-stone text-xs">
-            © {year} Prestige Immobilier. Tous droits réservés.
+            © {year} Ymmo. Tous droits réservés.
           </p>
           <div className="flex gap-6">
             <span className="text-stone text-xs">Mentions légales</span>
