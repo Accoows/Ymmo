@@ -36,27 +36,13 @@ app.use(
   })
 );
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Trop de requêtes, veuillez réessayer plus tard" },
-});
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Trop de tentatives, veuillez réessayer plus tard" },
-});
 
-app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/properties", apiLimiter, propertyRoutes);
-app.use("/api/property-types", apiLimiter, propertyTypeRoutes);
-app.use("/api/contact", apiLimiter, contactRoutes);
-app.use("/api/uploads", apiLimiter, uploadRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/properties", propertyRoutes);
+app.use("/api/property-types", propertyTypeRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
