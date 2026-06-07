@@ -45,7 +45,7 @@ async function main() {
   const adminPassword = await bcrypt.hash("Admin123!", 12);
   await prisma.user.create({
     data: {
-      email: "admin@prestige-immobilier.fr",
+      email: "admin@Ymmo.fr",
       password: adminPassword,
       username: "admin",
       firstName: "Admin",
@@ -53,7 +53,7 @@ async function main() {
       role: "Admin",
     },
   });
-  console.log("  Admin user created (admin@prestige-immobilier.fr / Admin123!)");
+  console.log("  Admin user created (admin@Ymmo.fr / Admin123!)");
 
   // ─── Types de biens ───────────────────────────────────────────────────────
   const villa      = await prisma.propertyType.create({ data: { name: "villa" } });

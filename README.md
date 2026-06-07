@@ -1,4 +1,4 @@
-# Ymmo — Prestige Immobilier
+# Ymmo — Ymmo
 
 Plateforme immobilière haut de gamme avec interface publique, espace admin et messagerie client.
 
@@ -74,7 +74,7 @@ npm run seed
 ```
 
 Cela crée :
-- Un compte administrateur : `admin@prestige-immobilier.fr` / `Admin123!`
+- Un compte administrateur : `admin@Ymmo.fr` / `Admin123!`
 - 6 propriétés de démonstration (villas, appartements, maisons)
 - 3 types de biens
 

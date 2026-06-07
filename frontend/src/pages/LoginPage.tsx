@@ -79,7 +79,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@prestige-immobilier.fr"
+                placeholder="admin@Ymmo.fr"
                 required
                 autoComplete="email"
                 className="input-field input-field-dark"

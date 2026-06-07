@@ -8,21 +8,21 @@ const offices = [
     address: "25 Avenue Montaigne",
     zip: "75008 Paris",
     phone: "+33 (0)1 40 00 00 00",
-    email: "paris@prestige-immobilier.fr",
+    email: "paris@Ymmo.fr",
   },
   {
     city: "Côte d'Azur",
     address: "12 Boulevard de la Croisette",
     zip: "06400 Cannes",
     phone: "+33 (0)4 93 00 00 00",
-    email: "cote-azur@prestige-immobilier.fr",
+    email: "cote-azur@Ymmo.fr",
   },
   {
     city: "Bordeaux",
     address: "8 Cours du Chapeau Rouge",
     zip: "33000 Bordeaux",
     phone: "+33 (0)5 56 00 00 00",
-    email: "bordeaux@prestige-immobilier.fr",
+    email: "bordeaux@Ymmo.fr",
   },
 ];
 
