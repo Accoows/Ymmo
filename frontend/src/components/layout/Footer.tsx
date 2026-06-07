@@ -13,7 +13,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <p className="font-display text-2xl font-light italic text-gold mb-4">
-              Prestige·Immobilier
+              Ymmo
             </p>
             <p className="text-stone text-sm leading-relaxed max-w-xs">
               Propriétés d'exception sur les plus beaux marchés français. Discrétion, 
