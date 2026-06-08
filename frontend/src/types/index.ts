@@ -1,3 +1,15 @@
+export interface AgencySummary {
+  id: string;
+  name: string;
+  city: string;
+}
+
+export interface Agency extends AgencySummary {
+  email: string;
+  phone: string | null;
+  _count: { properties: number };
+}
+
 export interface Property {
   id: string;
   title: string;
@@ -10,6 +22,7 @@ export interface Property {
   parking: number;
   type: string;
   typeId: number;
+  agency: AgencySummary;
   image: string;
   gallery: string[];
   description: string;
@@ -25,6 +38,7 @@ export interface PropertyLocation {
   title: string;
   location: string;
   type: string;
+  agency: string;
   priceRaw: number;
   latitude: number;
   longitude: number;
@@ -56,7 +70,9 @@ export interface User {
   username: string;
   firstName: string;
   lastName: string;
-  role: "Superadmin" | "Admin" | "AgencyHead" | "User";
+  role: "Superadmin" | "AgencyHead" | "User";
+  agencyId: string | null;
+  agency: AgencySummary | null;
   createdAt?: string;
 }
 
@@ -77,6 +93,7 @@ export interface PropertyFilters {
   minBedrooms?: number;
   minBathrooms?: number;
   minGarage?: number;
+  agencyId?: string;
   sort?: PropertySort;
   page?: number;
   limit?: number;
@@ -89,6 +106,7 @@ export interface ContactPayload {
   subject: string;
   message: string;
   propertyId?: string;
+  agencyId?: string;
 }
 
 export interface ContactMessage {
@@ -100,6 +118,7 @@ export interface ContactMessage {
   message: string;
   propertyId: string | null;
   propertyName: string | null;
+  agency: string;
   createdAt: string;
 }
 
@@ -112,6 +131,7 @@ export interface CreatePropertyPayload {
   name: string;
   description: string;
   typeId: number;
+  agencyId?: string;
   localisation: string;
   price: number;
   surface: number;

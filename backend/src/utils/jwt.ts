@@ -14,6 +14,7 @@ const JWT_EXPIRES_IN = "7d";
 export interface JwtPayload {
   userId: string;
   role: string;
+  agencyId: string | null;
 }
 
 export function signToken(payload: JwtPayload): string {

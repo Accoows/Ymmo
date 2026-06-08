@@ -134,6 +134,12 @@ export default function PropertyCard({
               <AreaIcon />
               <span>{formatSurface(property.surface)}</span>
             </span>
+            <span
+              className="ml-auto text-[10px] uppercase tracking-wider text-stone/60 truncate max-w-[42%]"
+              title={property.agency.name}
+            >
+              {property.agency.name}
+            </span>
           </div>
         </div>
       </Link>

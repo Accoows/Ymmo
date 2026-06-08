@@ -4,6 +4,7 @@ export const createPropertySchema = z.object({
   name: z.string().min(1, "Le nom est requis").max(200),
   description: z.string().min(1, "La description est requise"),
   typeId: z.number().int().positive(),
+  agencyId: z.string().uuid().optional(),
   localisation: z.string().min(1, "La localisation est requise").max(200),
   price: z.number().positive("Le prix doit être positif"),
   surface: z.number().int().positive("La surface doit être positive"),
@@ -35,6 +36,7 @@ export const propertyQuerySchema = z.object({
   minBedrooms: z.coerce.number().int().min(0).optional(),
   minBathrooms: z.coerce.number().int().min(0).optional(),
   minGarage: z.coerce.number().int().min(0).optional(),
+  agencyId: z.string().uuid().optional(),
   sort: z
     .enum(["recent", "price_asc", "price_desc", "surface_desc"])
     .default("recent"),

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { sendContact } from "../../lib/api";
+import { useAgencies } from "../../hooks/useAgencies";
 import type { ContactPayload } from "../../types";
 import Button from "./Button";
 
@@ -15,6 +16,10 @@ export default function ContactForm({
   propertyTitle,
   dark = false,
 }: ContactFormProps) {
+  // Sans bien rattaché, le visiteur doit choisir l'agence destinataire.
+  const requiresAgency = !propertyId;
+  const { data: agencies = [] } = useAgencies();
+
   const [form, setForm] = useState<ContactPayload>({
     name: "",
     email: "",
@@ -22,8 +27,10 @@ export default function ContactForm({
     subject: propertyTitle ? `Renseignements — ${propertyTitle}` : "",
     message: "",
     propertyId,
+    agencyId: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [agencyError, setAgencyError] = useState(false);
 
   const mutation = useMutation({
     mutationFn: sendContact,
@@ -31,16 +38,25 @@ export default function ContactForm({
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    if (e.target.name === "agencyId") setAgencyError(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const payload: ContactPayload = { ...form };
     if (!payload.phone) delete payload.phone;
-    if (!payload.propertyId) delete payload.propertyId;
+    if (payload.propertyId) {
+      delete payload.agencyId; // l'agence est celle du bien
+    } else {
+      delete payload.propertyId;
+      if (!payload.agencyId) {
+        setAgencyError(true);
+        return;
+      }
+    }
     mutation.mutate(payload);
   };
 
@@ -66,6 +82,32 @@ export default function ContactForm({
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {requiresAgency && (
+          <div className="sm:col-span-2">
+            <label htmlFor="agencyId" className={labelClass}>
+              Agence concernée *
+            </label>
+            <select
+              id="agencyId"
+              name="agencyId"
+              value={form.agencyId}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="">Sélectionner une agence…</option>
+              {agencies.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} — {a.city}
+                </option>
+              ))}
+            </select>
+            {agencyError && (
+              <p className="mt-2 text-red-400 text-xs font-body">
+                Veuillez sélectionner une agence.
+              </p>
+            )}
+          </div>
+        )}
         <div className="sm:col-span-1">
           <label htmlFor="name" className={labelClass}>
             Nom complet *

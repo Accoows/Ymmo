@@ -9,9 +9,21 @@ datasource db {
 
 enum Role {
   Superadmin
-  Admin
   AgencyHead
   User
+}
+
+model agency {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  city      String
+  email     String
+  phone     String?
+  createdAt DateTime @default(now())
+
+  users      user[]
+  properties property[]
+  messages   contactMessage[]
 }
 
 model user {
@@ -22,15 +34,19 @@ model user {
   username  String   @unique
   firstName String
   lastName  String
+  agencyId  String?
   createdAt DateTime @default(now())
+
+  agency agency? @relation(fields: [agencyId], references: [id])
 }
 
 model property {
   id           String   @id @default(uuid())
-      name         String
+  name         String
   description  String
   photos       media[]
   typeId       Int
+  agencyId     String
   localisation String
   price        Decimal
   surface      Int
@@ -40,7 +56,8 @@ model property {
   details      Json?
   posted_at    DateTime @default(now())
 
-  type propertyType @relation(fields: [typeId], references: [id])
+  type   propertyType @relation(fields: [typeId], references: [id])
+  agency agency       @relation(fields: [agencyId], references: [id])
 }
 
 model media {
@@ -58,12 +75,15 @@ model propertyType {
 }
 
 model contactMessage {
-  id        String   @id @default(uuid())
-  name      String
-  email     String
-  phone     String?
-  subject   String
-  message   String
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String
   propertyId String?
-  createdAt DateTime @default(now())
+  agencyId   String
+  createdAt  DateTime @default(now())
+
+  agency agency @relation(fields: [agencyId], references: [id])
 }

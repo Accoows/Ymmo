@@ -32,28 +32,104 @@ function photos(offset: number, count = 4): string[] {
   return result;
 }
 
+// ─── Agences & affectation géographique ─────────────────────────────────────
+type AgencyKey = "COTE_AZUR" | "PROVENCE" | "PARIS" | "SUD_OUEST" | "ALPES" | "OUEST" | "EST";
+
+const AGENCY_INFO: Record<AgencyKey, { name: string; city: string; email: string; phone: string }> = {
+  COTE_AZUR: { name: "Ymmo Côte d'Azur", city: "Nice", email: "cote-azur@ymmo.fr", phone: "+33 4 93 00 00 01" },
+  PROVENCE:  { name: "Ymmo Provence", city: "Aix-en-Provence", email: "provence@ymmo.fr", phone: "+33 4 42 00 00 02" },
+  PARIS:     { name: "Ymmo Paris", city: "Paris", email: "paris@ymmo.fr", phone: "+33 1 42 00 00 03" },
+  SUD_OUEST: { name: "Ymmo Sud-Ouest", city: "Bordeaux", email: "sud-ouest@ymmo.fr", phone: "+33 5 56 00 00 04" },
+  ALPES:     { name: "Ymmo Alpes", city: "Annecy", email: "alpes@ymmo.fr", phone: "+33 4 50 00 00 05" },
+  OUEST:     { name: "Ymmo Grand Ouest", city: "Nantes", email: "grand-ouest@ymmo.fr", phone: "+33 2 40 00 00 06" },
+  EST:       { name: "Ymmo Est", city: "Strasbourg", email: "est@ymmo.fr", phone: "+33 3 88 00 00 07" },
+};
+
+const AGENCY_BY_CITY: Record<string, AgencyKey> = {
+  // Côte d'Azur (Alpes-Maritimes, Monaco)
+  Nice: "COTE_AZUR", Cannes: "COTE_AZUR", Antibes: "COTE_AZUR", "Cap d'Antibes": "COTE_AZUR",
+  "Èze": "COTE_AZUR", "Beaulieu-sur-Mer": "COTE_AZUR", "Villefranche-sur-Mer": "COTE_AZUR",
+  Menton: "COTE_AZUR", Mougins: "COTE_AZUR", Valbonne: "COTE_AZUR", Grasse: "COTE_AZUR", Monaco: "COTE_AZUR",
+  // Provence (Var, Bouches-du-Rhône, Vaucluse, Gard, Corse)
+  "Saint-Tropez": "PROVENCE", Ramatuelle: "PROVENCE", "Sainte-Maxime": "PROVENCE",
+  "La Croix-Valmer": "PROVENCE", "Cavalaire-sur-Mer": "PROVENCE", Gassin: "PROVENCE", Giens: "PROVENCE",
+  Bandol: "PROVENCE", "Sanary-sur-Mer": "PROVENCE", Cassis: "PROVENCE", Marseille: "PROVENCE",
+  "Aix-en-Provence": "PROVENCE", "Saint-Rémy-de-Provence": "PROVENCE", "Les Baux-de-Provence": "PROVENCE",
+  Gordes: "PROVENCE", "Ménerbes": "PROVENCE", Lourmarin: "PROVENCE", Bonnieux: "PROVENCE",
+  Roussillon: "PROVENCE", "Séguret": "PROVENCE", "Aigues-Mortes": "PROVENCE",
+  "Saintes-Maries-de-la-Mer": "PROVENCE", "Uzès": "PROVENCE", "Saint-Jean-du-Gard": "PROVENCE", Bastia: "PROVENCE",
+  // Sud-Ouest (Nouvelle-Aquitaine, Occitanie ouest)
+  Bordeaux: "SUD_OUEST", Biarritz: "SUD_OUEST", "Saint-Jean-de-Luz": "SUD_OUEST", Ciboure: "SUD_OUEST",
+  Espelette: "SUD_OUEST", Pauillac: "SUD_OUEST", Arcachon: "SUD_OUEST", "Gujan-Mestras": "SUD_OUEST",
+  Cognac: "SUD_OUEST", "Tarascon-sur-Ariège": "SUD_OUEST", "Argelès-Gazost": "SUD_OUEST", Toulouse: "SUD_OUEST",
+  "Sarlat-la-Canéda": "SUD_OUEST", Montignac: "SUD_OUEST", "Saint-Pierre-d'Oléron": "SUD_OUEST",
+  "Saint-Martin-de-Ré": "SUD_OUEST", Montpellier: "SUD_OUEST", "Pézenas": "SUD_OUEST",
+  // Alpes (Savoie, Haute-Savoie, Isère)
+  "Megève": "ALPES", "Courchevel 1850": "ALPES", Annecy: "ALPES", Grenoble: "ALPES",
+  // Grand Ouest (Bretagne, Normandie, Pays de la Loire, Val de Loire)
+  Nantes: "OUEST", "La Baule": "OUEST", "Noirmoutier-en-l'Île": "OUEST", "Saint-Malo": "OUEST",
+  "Saint-Briac-sur-Mer": "OUEST", Dinard: "OUEST", Crozon: "OUEST", Deauville: "OUEST",
+  Honfleur: "OUEST", Vouvray: "OUEST",
+  // Est & Nord (Alsace, Lorraine, Champagne, Hauts-de-France, Bourgogne, Rhône)
+  Strasbourg: "EST", Obernai: "EST", Kaysersberg: "EST", Metz: "EST", "Épernay": "EST",
+  Lille: "EST", "Le Touquet": "EST", "Nuits-Saint-Georges": "EST", "Villefranche-sur-Saône": "EST", Lyon: "EST",
+};
+
+function agencyKeyOf(localisation: string): AgencyKey {
+  const primary = localisation.split(",")[0].trim();
+  if (primary.startsWith("Paris")) return "PARIS";
+  return AGENCY_BY_CITY[primary] ?? "PROVENCE";
+}
+
 async function main() {
   console.log("Seeding database...");
 
   await prisma.media.deleteMany();
+  await prisma.contactMessage.deleteMany();
   await prisma.property.deleteMany();
   await prisma.propertyType.deleteMany();
-  await prisma.contactMessage.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.agency.deleteMany();
+
+  // ─── Agences ──────────────────────────────────────────────────────────────
+  const agencyIds = {} as Record<AgencyKey, string>;
+  for (const key of Object.keys(AGENCY_INFO) as AgencyKey[]) {
+    const agency = await prisma.agency.create({ data: AGENCY_INFO[key] });
+    agencyIds[key] = agency.id;
+  }
+  console.log(`  ${Object.keys(AGENCY_INFO).length} agences créées`);
 
   // ─── Utilisateurs ─────────────────────────────────────────────────────────
-  const adminPassword = await bcrypt.hash("Admin123!", 12);
+  const superPassword = await bcrypt.hash("Admin123!", 12);
   await prisma.user.create({
     data: {
-      email: "admin@Ymmo.fr",
-      password: adminPassword,
-      username: "admin",
-      firstName: "Admin",
-      lastName: "Prestige",
-      role: "Admin",
+      email: "admin@ymmo.fr",
+      password: superPassword,
+      username: "superadmin",
+      firstName: "Super",
+      lastName: "Admin",
+      role: "Superadmin",
     },
   });
-  console.log("  Admin user created (admin@Ymmo.fr / Admin123!)");
+  console.log("  Superadmin créé (admin@ymmo.fr / Admin123!)");
+
+  const headPassword = await bcrypt.hash("Agency123!", 12);
+  for (const key of Object.keys(AGENCY_INFO) as AgencyKey[]) {
+    const info = AGENCY_INFO[key];
+    const slug = key.toLowerCase().replace(/_/g, "-");
+    await prisma.user.create({
+      data: {
+        email: `${slug}.head@ymmo.fr`,
+        password: headPassword,
+        username: `head-${slug}`,
+        firstName: "Responsable",
+        lastName: info.name.replace("Ymmo ", ""),
+        role: "AgencyHead",
+        agencyId: agencyIds[key],
+      },
+    });
+  }
+  console.log(`  ${Object.keys(AGENCY_INFO).length} responsables d'agence créés (ex. cote-azur.head@ymmo.fr / Agency123!)`);
 
   // ─── Types de biens ───────────────────────────────────────────────────────
   const villa      = await prisma.propertyType.create({ data: { name: "villa" } });
@@ -784,6 +860,7 @@ async function main() {
     await prisma.property.create({
       data: {
         ...data,
+        agencyId: agencyIds[agencyKeyOf(data.localisation)],
         photos: { create: photoList.map((path) => ({ path })) },
       },
     });

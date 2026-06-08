@@ -4,6 +4,7 @@ import type {
   Property,
   PropertyLocation,
   PropertyType,
+  Agency,
   AuthResponse,
   User,
   PropertyFilters,
@@ -109,6 +110,13 @@ export async function fetchPropertyTypes(): Promise<PropertyType[]> {
     "/property-types"
   );
   return data.propertyTypes;
+}
+
+// ─── Agencies ────────────────────────────────────────────────────────────────
+
+export async function fetchAgencies(): Promise<Agency[]> {
+  const { data } = await api.get<{ agencies: Agency[] }>("/agencies");
+  return data.agencies;
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   canManage: boolean;
+  isSuperadmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -59,9 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const canManage =
-    user?.role === "Admin" ||
-    user?.role === "Superadmin" ||
-    user?.role === "AgencyHead";
+    user?.role === "Superadmin" || user?.role === "AgencyHead";
+  const isSuperadmin = user?.role === "Superadmin";
 
   return (
     <AuthContext.Provider
@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         canManage,
+        isSuperadmin,
         login,
         logout,
       }}

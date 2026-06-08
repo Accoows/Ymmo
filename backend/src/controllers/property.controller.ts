@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma.js";
 import { createPropertySchema, updatePropertySchema, propertyQuerySchema } from "../schemas/property.schema.js";
 import { AppError } from "../middleware/errorHandler.js";
+import { canManageAgency } from "../middleware/auth.js";
 import { geocode } from "../lib/geo.js";
 
 interface PropertyDetails {
@@ -34,6 +35,7 @@ function formatProperty(p: {
   posted_at: Date;
   photos: { id: string; path: string }[];
   type: { id: number; name: string };
+  agency: { id: string; name: string; city: string };
 }) {
   const details = (p.details ?? {}) as PropertyDetails;
   const coords = coordsFromDetails(details) ?? geocode(p.localisation);
@@ -49,6 +51,7 @@ function formatProperty(p: {
     parking: p.garage,
     type: p.type.name,
     typeId: p.type.id,
+    agency: { id: p.agency.id, name: p.agency.name, city: p.agency.city },
     image: p.photos[0]?.path ?? "",
     gallery: p.photos.map((ph) => ph.path),
     description: p.description,
@@ -82,6 +85,7 @@ export async function getProperties(req: Request, res: Response, next: NextFunct
       minBedrooms,
       minBathrooms,
       minGarage,
+      agencyId,
       sort,
       page,
       limit,
@@ -89,6 +93,8 @@ export async function getProperties(req: Request, res: Response, next: NextFunct
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
+
+    if (agencyId) where.agencyId = agencyId;
 
     if (search) {
       where.OR = [
@@ -124,7 +130,7 @@ export async function getProperties(req: Request, res: Response, next: NextFunct
     const [properties, total] = await Promise.all([
       prisma.property.findMany({
         where,
-        include: { photos: true, type: true },
+        include: { photos: true, type: true, agency: true },
         orderBy,
         skip,
         take: limit,
@@ -157,6 +163,7 @@ export async function getPropertyLocations(_req: Request, res: Response, next: N
         price: true,
         details: true,
         type: { select: { name: true } },
+        agency: { select: { name: true } },
       },
       orderBy: { posted_at: "desc" },
     });
@@ -171,6 +178,7 @@ export async function getPropertyLocations(_req: Request, res: Response, next: N
           title: p.name,
           location: p.localisation,
           type: p.type.name,
+          agency: p.agency.name,
           priceRaw: Number(p.price),
           latitude: coords.lat,
           longitude: coords.lng,
@@ -187,7 +195,7 @@ export async function getPropertyLocations(_req: Request, res: Response, next: N
 export async function getFeaturedProperty(_req: Request, res: Response, next: NextFunction) {
   try {
     const property = await prisma.property.findFirst({
-      include: { photos: true, type: true },
+      include: { photos: true, type: true, agency: true },
       orderBy: { price: "desc" },
     });
 
@@ -206,7 +214,7 @@ export async function getPropertyById(req: Request, res: Response, next: NextFun
   try {
     const property = await prisma.property.findUnique({
       where: { id: req.params.id },
-      include: { photos: true, type: true },
+      include: { photos: true, type: true, agency: true },
     });
 
     if (!property) {
@@ -222,22 +230,35 @@ export async function getPropertyById(req: Request, res: Response, next: NextFun
 export async function createProperty(req: Request, res: Response, next: NextFunction) {
   try {
     const data = createPropertySchema.parse(req.body);
-    const { photos, ...propertyData } = data;
+    const { photos, agencyId: bodyAgencyId, ...propertyData } = data;
 
-    const typeExists = await prisma.propertyType.findUnique({ where: { id: data.typeId } });
-    if (!typeExists) {
-      throw new AppError(400, "Type de propriété invalide");
+    // Le Superadmin choisit l'agence ; un AgencyHead crée pour la sienne.
+    let agencyId: string;
+    if (req.user?.role === "Superadmin") {
+      if (!bodyAgencyId) throw new AppError(400, "L'agence est requise");
+      agencyId = bodyAgencyId;
+    } else {
+      if (!req.user?.agencyId) throw new AppError(403, "Aucune agence rattachée à ce compte");
+      agencyId = req.user.agencyId;
     }
+
+    const [typeExists, agencyExists] = await Promise.all([
+      prisma.propertyType.findUnique({ where: { id: data.typeId } }),
+      prisma.agency.findUnique({ where: { id: agencyId } }),
+    ]);
+    if (!typeExists) throw new AppError(400, "Type de propriété invalide");
+    if (!agencyExists) throw new AppError(400, "Agence invalide");
 
     const property = await prisma.property.create({
       data: {
         ...propertyData,
+        agencyId,
         price: propertyData.price,
         photos: photos?.length
           ? { create: photos.map((path) => ({ path })) }
           : undefined,
       },
-      include: { photos: true, type: true },
+      include: { photos: true, type: true, agency: true },
     });
 
     res.status(201).json({ property: formatProperty(property) });
@@ -249,11 +270,22 @@ export async function createProperty(req: Request, res: Response, next: NextFunc
 export async function updateProperty(req: Request, res: Response, next: NextFunction) {
   try {
     const data = updatePropertySchema.parse(req.body);
-    const { photos, ...propertyData } = data;
+    const { photos, agencyId: bodyAgencyId, ...propertyData } = data;
 
     const existing = await prisma.property.findUnique({ where: { id: req.params.id } });
     if (!existing) {
       throw new AppError(404, "Propriété non trouvée");
+    }
+    if (!canManageAgency(req.user, existing.agencyId)) {
+      throw new AppError(403, "Ce bien n'appartient pas à votre agence");
+    }
+
+    // Seul le Superadmin peut réattribuer un bien à une autre agence.
+    let reassign: { agencyId: string } | Record<string, never> = {};
+    if (req.user?.role === "Superadmin" && bodyAgencyId && bodyAgencyId !== existing.agencyId) {
+      const agencyExists = await prisma.agency.findUnique({ where: { id: bodyAgencyId } });
+      if (!agencyExists) throw new AppError(400, "Agence invalide");
+      reassign = { agencyId: bodyAgencyId };
     }
 
     if (photos) {
@@ -264,11 +296,12 @@ export async function updateProperty(req: Request, res: Response, next: NextFunc
       where: { id: req.params.id },
       data: {
         ...propertyData,
+        ...reassign,
         ...(photos
           ? { photos: { create: photos.map((path) => ({ path })) } }
           : {}),
       },
-      include: { photos: true, type: true },
+      include: { photos: true, type: true, agency: true },
     });
 
     res.json({ property: formatProperty(property) });
@@ -282,6 +315,9 @@ export async function deleteProperty(req: Request, res: Response, next: NextFunc
     const existing = await prisma.property.findUnique({ where: { id: req.params.id } });
     if (!existing) {
       throw new AppError(404, "Propriété non trouvée");
+    }
+    if (!canManageAgency(req.user, existing.agencyId)) {
+      throw new AppError(403, "Ce bien n'appartient pas à votre agence");
     }
 
     await prisma.property.delete({ where: { id: req.params.id } });

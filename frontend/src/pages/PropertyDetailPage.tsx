@@ -222,9 +222,13 @@ export default function PropertyDetailPage() {
               style={{ borderColor: "var(--gold-border)" }}
             >
               <p className="text-label text-stone mb-2">Demande d'information</p>
-              <h3 className="font-display text-2xl font-medium text-ink mb-6">
+              <h3 className="font-display text-2xl font-medium text-ink mb-2">
                 Nous contacter
               </h3>
+              <p className="text-stone text-sm mb-6">
+                Bien géré par{" "}
+                <span className="text-gold">{property.agency.name}</span>
+              </p>
               <ContactForm
                 propertyId={property.id}
                 propertyTitle={property.title}

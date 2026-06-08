@@ -7,6 +7,7 @@ export const contactSchema = z.object({
   subject: z.string().min(1, "Le sujet est requis").max(200),
   message: z.string().min(1, "Le message est requis").max(5000),
   propertyId: z.string().uuid().optional(),
+  agencyId: z.string().uuid().optional(),
 });
 
 export const contactQuerySchema = z.object({

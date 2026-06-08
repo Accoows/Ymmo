@@ -53,7 +53,9 @@ function MessageCard({
           <h3 className="font-display text-xl font-medium italic text-ink leading-tight">
             {m.subject}
           </h3>
-          <p className="text-label text-stone mt-1.5">{formatDate(m.createdAt)}</p>
+          <p className="text-label text-stone mt-1.5">
+            {formatDate(m.createdAt)} · {m.agency}
+          </p>
         </div>
         {m.propertyId &&
           (m.propertyName ? (

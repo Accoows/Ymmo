@@ -12,13 +12,13 @@ router.post("/", sendContactMessage);
 router.get(
   "/",
   authenticate,
-  authorize("Admin", "Superadmin", "AgencyHead"),
+  authorize("Superadmin", "AgencyHead"),
   getContactMessages
 );
 router.delete(
   "/:id",
   authenticate,
-  authorize("Admin", "Superadmin"),
+  authorize("Superadmin", "AgencyHead"),
   deleteContactMessage
 );
 

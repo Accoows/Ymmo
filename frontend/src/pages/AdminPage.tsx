@@ -23,6 +23,7 @@ import {
 } from "../lib/api";
 import { usePropertyTypes } from "../hooks/usePropertyTypes";
 import { usePropertyLocations } from "../hooks/usePropertyLocations";
+import { useAgencies } from "../hooks/useAgencies";
 import type { Property, CreatePropertyPayload } from "../types";
 
 // ─── Property form modal ─────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ interface PropertyFormData {
   name: string;
   description: string;
   typeId: string;
+  agencyId: string;
   localisation: string;
   price: string;
   surface: string;
@@ -48,6 +50,7 @@ const emptyForm: PropertyFormData = {
   name: "",
   description: "",
   typeId: "",
+  agencyId: "",
   localisation: "",
   price: "",
   surface: "",
@@ -66,6 +69,7 @@ function fromProperty(p: Property): PropertyFormData {
     name: p.title,
     description: p.description,
     typeId: String(p.typeId),
+    agencyId: p.agency.id,
     localisation: p.location,
     price: String(p.priceRaw),
     surface: String(p.surface),
@@ -85,6 +89,7 @@ function toPayload(form: PropertyFormData): CreatePropertyPayload {
     name: form.name.trim(),
     description: form.description.trim(),
     typeId: Number(form.typeId),
+    agencyId: form.agencyId || undefined,
     localisation: form.localisation.trim(),
     price: Number(form.price),
     surface: Number(form.surface),
@@ -117,7 +122,9 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
   const [formError, setFormError] = useState("");
   const [uploading, setUploading] = useState(false);
   const qc = useQueryClient();
+  const { isSuperadmin, user } = useAuth();
   const { data: types = [] } = usePropertyTypes();
+  const { data: agencies = [] } = useAgencies();
 
   const createMutation = useMutation({
     mutationFn: createProperty,
@@ -251,6 +258,23 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
                 ))}
               </select>
             </div>
+
+            {isSuperadmin ? (
+              <div>
+                <label htmlFor="f-agency" className={labelClass}>Agence *</label>
+                <select id="f-agency" name="agencyId" required value={form.agencyId} onChange={handleChange} className={inputClass}>
+                  <option value="">Sélectionner…</option>
+                  {agencies.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className={labelClass}>Agence</label>
+                <div className={`${inputClass} text-stone`}>{user?.agency?.name ?? "—"}</div>
+              </div>
+            )}
 
             <div>
               <label htmlFor="f-loc" className={labelClass}>Localisation *</label>
@@ -399,7 +423,7 @@ function PropertyModal({ editTarget, onClose }: PropertyModalProps) {
 type AdminTab = "properties" | "messages";
 
 export default function AdminPage() {
-  const { isAuthenticated, canManage, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, canManage, isSuperadmin, user, isLoading: authLoading } = useAuth();
   const [tab, setTab] = useState<AdminTab>("properties");
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Property | null>(null);
@@ -408,15 +432,20 @@ export default function AdminPage() {
 
   const qc = useQueryClient();
 
+  // Un AgencyHead ne pilote que les biens de son agence ; le Superadmin, tous.
+  const scopeAgencyId = isSuperadmin ? undefined : user?.agencyId ?? undefined;
+
   const { data, isLoading } = useQuery({
-    queryKey: ["properties", { page, limit: 15 }],
-    queryFn: () => fetchProperties({ page, limit: 15 }),
+    queryKey: ["properties", { page, limit: 15, agencyId: scopeAgencyId }],
+    queryFn: () => fetchProperties({ page, limit: 15, agencyId: scopeAgencyId }),
     enabled: tab === "properties",
   });
 
   const { data: locations = [] } = usePropertyLocations();
 
-  const mapPoints: MapPoint[] = locations.map((l) => ({
+  const mapPoints: MapPoint[] = locations
+    .filter((l) => isSuperadmin || l.agency === user?.agency?.name)
+    .map((l) => ({
     id: l.id,
     title: l.title,
     location: l.location,
@@ -472,6 +501,13 @@ export default function AdminPage() {
               >
                 {tab === "properties" ? "Gestion des propriétés" : "Messages clients"}
               </h1>
+              <p className="text-stone text-sm mt-2">
+                {isSuperadmin
+                  ? "Toutes les agences"
+                  : user?.agency
+                  ? `Agence ${user.agency.name}`
+                  : ""}
+              </p>
             </div>
             {tab === "properties" && (
               <Button variant="primary" size="md" onClick={openCreate}>
@@ -534,6 +570,7 @@ export default function AdminPage() {
                   <tr>
                     <th>Titre</th>
                     <th>Type</th>
+                    {isSuperadmin && <th className="hidden lg:table-cell">Agence</th>}
                     <th className="hidden md:table-cell">Localisation</th>
                     <th>Prix</th>
                     <th className="hidden lg:table-cell">Surface</th>
@@ -560,6 +597,11 @@ export default function AdminPage() {
                       <td>
                         <Badge variant="stone">{property.type}</Badge>
                       </td>
+                      {isSuperadmin && (
+                        <td className="hidden lg:table-cell text-stone">
+                          {property.agency.name}
+                        </td>
+                      )}
                       <td className="hidden md:table-cell text-stone">
                         {property.location}
                       </td>

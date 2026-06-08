@@ -27,7 +27,7 @@ function handleUpload(req: Request, res: Response, next: NextFunction) {
 router.post(
   "/",
   authenticate,
-  authorize("Admin", "Superadmin", "AgencyHead"),
+  authorize("Superadmin", "AgencyHead"),
   handleUpload,
   createUploads
 );

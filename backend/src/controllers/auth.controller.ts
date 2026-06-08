@@ -15,6 +15,8 @@ const publicUserSelect = {
   firstName: true,
   lastName: true,
   role: true,
+  agencyId: true,
+  agency: { select: { id: true, name: true, city: true } },
   createdAt: true,
 } as const;
 
@@ -42,7 +44,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
       select: publicUserSelect,
     });
 
-    const token = signToken({ userId: user.id, role: user.role });
+    const token = signToken({ userId: user.id, role: user.role, agencyId: user.agencyId });
 
     res.status(201).json({ user, token });
   } catch (err) {
@@ -56,6 +58,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
     const user = await prisma.user.findUnique({
       where: { email: data.email },
+      include: { agency: { select: { id: true, name: true, city: true } } },
     });
 
     if (!user) {
@@ -67,7 +70,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       throw new AppError(401, "Email ou mot de passe incorrect");
     }
 
-    const token = signToken({ userId: user.id, role: user.role });
+    const token = signToken({ userId: user.id, role: user.role, agencyId: user.agencyId });
 
     res.json({
       user: {
@@ -77,6 +80,8 @@ export async function login(req: Request, res: Response, next: NextFunction) {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        agencyId: user.agencyId,
+        agency: user.agency,
       },
       token,
     });

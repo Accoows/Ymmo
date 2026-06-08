@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.routes.js";
 import propertyRoutes from "./routes/property.routes.js";
 import propertyTypeRoutes from "./routes/propertyType.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
+import agencyRoutes from "./routes/agency.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import { uploadsDir } from "./middleware/upload.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -42,6 +43,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/property-types", propertyTypeRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/agencies", agencyRoutes);
 app.use("/api/uploads", uploadRoutes);
 
 app.get("/api/health", (_req, res) => {

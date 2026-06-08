@@ -37,3 +37,13 @@ export function authorize(...roles: string[]) {
     next();
   };
 }
+
+// Le Superadmin gère toutes les agences ; un AgencyHead seulement la sienne.
+export function canManageAgency(
+  user: JwtPayload | undefined,
+  agencyId: string | null | undefined
+): boolean {
+  if (!user) return false;
+  if (user.role === "Superadmin") return true;
+  return user.role === "AgencyHead" && !!user.agencyId && user.agencyId === agencyId;
+}
