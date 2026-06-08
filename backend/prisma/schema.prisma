@@ -27,7 +27,7 @@ model user {
 
 model property {
   id           String   @id @default(uuid())
-  name         String
+      name         String
   description  String
   photos       media[]
   typeId       Int
